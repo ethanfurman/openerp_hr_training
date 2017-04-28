@@ -1,0 +1,33 @@
+!!! xml1.0
+~openerp
+    ~data
+
+        ~record model='ir.ui.view' #view_hr_training_award_form
+            @name: Class Certificates
+            @model: hr.training.award
+            @arch type='xml'
+                ~form $Certificates create='0' delete='0' version='7.0' edit='fnx_pd.group_fnx_pd_user'
+                    ~h1
+                        @class_id readonly='1'
+                    ~notebook
+                        ~page $Attendees
+                            @employee_ids nolabel='1'
+                                ~tree $Candidates create='0' delete='0' editable='top' colors="green:disposition=='pass';red:disposition=='fail'"
+                                    @disposition
+                                    @name readonly='1'
+                                    @department readonly='1'
+                                    @job readonly='1'
+                    ~div
+                        ~span
+                            ~button @process $Award_Certificates_and_Close_Class .oe_highlight type='object'
+                            or
+                            ~button @cancel $Cancel .oe_link type='object'
+
+        ~record model='ir.actions.act_window' #action_hr_training_award_certification
+            @name: Award Certificates
+            @type: ir.actions.act_window
+            @res_model: hr.training.award
+            @view_type: form
+            @view_mode: form
+            @view_id ref='view_hr_training_award_form'
+            @target: new

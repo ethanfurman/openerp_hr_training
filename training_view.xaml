@@ -1,0 +1,173 @@
+!!! xml1.0
+~openerp
+    ~data
+
+        ~menuitem @Training #menu_hr_training parent='hr.menu_hr_root' groups='base.group_hr_manager'
+
+        // main forms
+
+        ~record model='ir.ui.view' #hr_training_class_form
+            @name: hr.training.class.form
+            @model: hr.training.class
+            @arch type='xml'
+                ~form $Training_Class version='7.0'
+                    ~div .oe_preliminary
+                        ~label for='description_id' .oe_edit_only
+                        ~h1
+                            @description_id on_change='change_class(description_id, context)' options="{'create': False, 'create_edit': False, 'no_open': True}"
+                        ~label for='class_cert'
+                        ~div colspan='1'
+                            @class_cert .oe_inline readonly='1'
+                            for
+                            @class_effective_period .oe_inline readonly='1'
+                            months
+                    ~div @button_box .oe_right .oe_button_box
+                        ~button $Award_Certificates .oe_edit_hide name='%(hr_training.action_hr_training_award_certification)d' type='action' attrs="{'invisible': [('attendee_ids','=',None)]}"
+                    ~div
+                        ~group $Description
+                                @class_name readonly='1'
+                                @class_desc readonly='1'
+                                ~label for='duration_count' $Class_Length
+                                ~div colspan='1'
+                                    @duration_count .oe_inline
+                                    @duration_period .oe_inline
+                        ~group $Details cols='6'
+                            ~group cols='4'
+                                @location
+                            ~group cols
+                                @capacity on_change='change_remaining(capacity, attendee_ids, context)'
+                                @remaining readonly='1'
+                                @start_date
+                                @start_time
+                        ~group
+                            @instructor_ids options="{'create': False, 'create_edit': False}"
+                                ~tree
+                                    @name
+                                    @parent_id
+                                    @phone
+                                    @email
+                            @attendee_ids on_change='change_remaining(capacity, attendee_ids, context)' options="{'create': False, 'create_edit': False}"
+                                ~tree
+                                    @name
+                                    @work_phone $Phone
+                                    @work_email $Email
+
+        ~record model='ir.ui.view' #hr_training_class_tree
+            @name: hr.training.class.tree
+            @model: hr.training.class
+            @arch type='xml'
+                ~tree $Training_Class
+                    @class_name
+                    @class_cert
+                    @start_datetime
+                    @location
+                    @capacity
+                    @remaining
+
+        ~record model='ir.actions.act_window' #hr_training_class_action
+            @name: Trainings
+            @res_model: hr.training.class
+            @view_type: form
+            @view_mode: tree,form
+            // @search_view_id:
+            // @context:
+
+        ~menuitem name='Classes' #menu_hr_training_class parent='menu_hr_training' action='hr_training_class_action'
+
+
+        // config
+
+        ~record model='ir.ui.view' #hr_training_description_form
+            @name: hr.training.description.form
+            @model: hr.training.description
+            @arch type='xml'
+                ~form $Class_Description version='7.0'
+                    ~group
+                        @name
+                        @desc
+                        ~label for='duration_count' $Class_Length
+                        ~div colspan='1'
+                            @duration_count .oe_inline
+                            @duration_period .oe_inline
+                    ~group
+                        ~label for='tag' $Certificaton_Tag
+                        ~div colspan='1'
+                            @tag
+                        ~label for='effective_period' $Effective_for
+                        ~div colspan='1'
+                            @effective_period .oe_inline
+                            months
+
+        ~record model='ir.ui.view' #hr_training_description_tree
+            @name: hr.training.description.tree
+            @model: hr.training.description
+            @arch type='xml'
+                ~tree $Class_Description
+                    @name
+                    @tag
+
+        ~record model='ir.actions.act_window' #hr_training_description_action
+            @name: Classes
+            @res_model: hr.training.description
+            @view_type: form
+            @view_mode: tree,form
+
+        ~menuitem name='Class Descriptions' #menu_hr_class_description parent='hr.menu_hr_configuration' action='hr_training_description_action'
+            
+        ~record model='ir.ui.view' #hr_training_tag_form
+            @name: hr.training.tag.form
+            @model: hr.training.tag
+            @arch type='xml'
+                ~form $Training_Certification_Tag version='7.0'
+                    @name
+                    @start_date
+                    @end_date
+                    @employee_ids
+
+        ~record model='ir.ui.view' #hr_training_tag_tree
+            @name: hr.training.tag.tree
+            @model: hr.training.tag
+            @arch type='xml'
+                ~tree $Training_Certification_Tag
+                    @name
+                    @start_date
+                    @end_date
+
+        ~record model='ir.actions.act_window' #hr_training_tag_action
+            @name: Certifications
+            @res_model: hr.training.tag
+            @view_type: form
+            @view_mode: tree,form
+
+
+        ~menuitem name='Certifications' #menu_hr_training_cert_configuration parent='hr.menu_hr_configuration' action='hr_training_tag_action'
+
+
+        // employee integration
+
+        ~record model='ir.ui.view' #hr_training_hr_employee_form
+            @name: hr.employee.form
+            @model: hr.employee
+            @inherit_id ref='hr.view_employee_form'
+            @priority eval='16'
+            @arch type='xml'
+                @category_ids position='after'
+                    ~label .oe_edit_only $Certifications for='hr_training_certs'
+                    @hr_training_certs readonly='1' widget='many2many_tags'
+                ~xpath expr="//form/sheet/notebook" position='inside'
+                    ~page $Certifications
+                        ~label for='hr_training_classes'
+                        @hr_training_classes readonly='1'
+                            ~tree 
+                                @class_name
+                                @class_cert
+                                @location
+                                @start_datetime
+                                @remaining
+                        ~label for='hr_training_history'
+                        @hr_training_history readonly='1'
+                            ~tree
+                                @class_name
+                                @class_cert
+                                @start_date
+                                @end_date
