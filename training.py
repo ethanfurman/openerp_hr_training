@@ -17,13 +17,26 @@ class hr_training_description(osv.Model):
     _name = 'hr.training.description'
     _desc = 'class description'
 
+    def _get_ids_from_tags(hr_training_tags, cr, uid, ids, context=None):
+        if isinstance(ids, (int, long)):
+            ids = [ids]
+        return [
+                t.description_id.id
+                for t in hr_training_tags.browse(cr, uid, ids, context=context)
+                ]
+
     _columns = {
         'name': fields.char('Title', size=64),
         'desc': fields.text('Description'),
         'tag': fields.char('Certification Tag', size=64),
         'effective_period': fields.integer('Effective for'),
-        'duration_count': fields.float('Class length'),
-        'duration_period': fields.selection(ClassLength, string='Class duration'),
+        'tag_ids': fields.one2many('hr.training.tag', 'description_id', 'Current Tags'),
+        'class_ids': fields.one2many('hr.training.class', 'description_id', 'Classes'),
+        'employee_ids': fields.many2many(
+            'hr.employee',
+            'employee2training_description', 'description_id', 'employee_id',
+            string='Authorized Personnel',
+            ),
         }
 
 
@@ -74,10 +87,10 @@ class hr_training_class(osv.Model):
             'description_id', 'effective_period',
             string='Effective Period', type='integer',
             ),
-        'duration_count': fields.float('Length'),
+        'duration_count': fields.integer('Length'),
         'duration_period': fields.selection(ClassLength, string='Class duration'),
         'start_date': fields.date('Start date'),
-        'start_time': fields.float('Start time'),
+        'start_time': fields.char('Start time', size=12),
         'start_datetime': fields.function(
             _calc_datetime,
             string='Date & Time',
@@ -91,7 +104,6 @@ class hr_training_class(osv.Model):
             'res.partner',
             'instructor2training', 'training_id', 'partner_id',
             string='Instructor(s)',
-            on_delete='restrict',
             ),
         'attendee_ids': fields.many2many(
             'hr.employee',
@@ -145,8 +157,6 @@ class hr_training_class(osv.Model):
             'class_desc': record.desc,
             'class_cert': record.tag,
             'class_effective_period': record.effective_period,
-            'duration_count': record.duration_count,
-            'duration_period': record.duration_period,
             }
         res['value'] = values
         return res
@@ -158,6 +168,7 @@ class hr_training_tag(osv.Model):
 
     _columns = {
         'active': fields.boolean('Effective', help="Tag becomes inactive once expired"),
+        'description_id': fields.many2one('hr.training.description', 'Certificate Details'),
         'name': fields.char('Name', size=64),
         'employee_ids': fields.many2many(
             'hr.employee',
@@ -186,19 +197,18 @@ class hr_training_history(osv.Model):
             on_delete='restrict',
             ),
         'disposition': fields.selection(
-            (('pass', 'Pass'),
-             ('fail', 'Fail'),
+            (('pass', 'Passed'),
+             ('fail', 'Failed'),
              ),
-            string='Grant Certificate',
+            string='Status',
             sort_order='definition',
             ),
         'class_name': fields.char('Class', size=64),
         'class_desc': fields.text('Description'),
-        'class_cert': fields.char('Certification', size=64),
-        'start_date': fields.date('Effective Date'),
-        'end_date': fields.date('Expiration Date'),
+        'class_cert': fields.char('Certificate', size=64),
+        'class_date': fields.date('Training Date'),
+        'expiration_date': fields.date('Expiration Date'),
         }
-
 
 
 class hr_employee(osv.Model):
@@ -210,6 +220,7 @@ class hr_employee(osv.Model):
             'hr.training.tag',
             'employee2training_tag', 'employee_id', 'training_tag_id',
             string='Certifications',
+            ondelete='restrict',
             ),
         'hr_training_history': fields.many2many(
             'hr.training.history',

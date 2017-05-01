@@ -37,8 +37,9 @@
                             ~group cols
                                 @capacity on_change='change_remaining(capacity, attendee_ids, context)'
                                 @remaining readonly='1'
-                                @start_date
-                                @start_time
+                                @start_datetime .oe_edit_hide
+                                @start_date .oe_edit_only
+                                @start_time .oe_edit_only
                         ~group
                             @instructor_ids options="{'create': False, 'create_edit': False}"
                                 ~tree
@@ -83,20 +84,36 @@
             @arch type='xml'
                 ~form $Class_Description version='7.0'
                     ~group
-                        @name
-                        @desc
-                        ~label for='duration_count' $Class_Length
-                        ~div colspan='1'
-                            @duration_count .oe_inline
-                            @duration_period .oe_inline
-                    ~group
-                        ~label for='tag' $Certificaton_Tag
-                        ~div colspan='1'
-                            @tag
-                        ~label for='effective_period' $Effective_for
-                        ~div colspan='1'
-                            @effective_period .oe_inline
-                            months
+                        ~group colspan='2'
+                            @name
+                            @desc
+                    ~group col='5'
+                        ~group colspan='2'
+                            ~label for='tag' $Certificaton_Tag
+                            ~div colspan='1'
+                                @tag
+                            ~label for='effective_period' $Effective_for
+                            ~div colspan='1'
+                                @effective_period .oe_inline
+                                months
+                        ~group colspan='3'
+                            ~div
+                                ~label for='tag_ids' $Active_Certifications
+                                @tag_ids
+                                    ~tree
+                                        @name
+                                        @start_date
+                                        @end_date
+                    ~hr
+                    ~label for='class_ids' $Scheduled_Classes
+                    @class_ids
+                    ~hr
+                    ~label for='employee_ids' $Currenty_Trained_Personnel
+                    @employee_ids
+                        ~tree
+                            @name
+                            @department_id
+                            @job_id
 
         ~record model='ir.ui.view' #hr_training_description_tree
             @name: hr.training.description.tree
@@ -119,10 +136,18 @@
             @model: hr.training.tag
             @arch type='xml'
                 ~form $Training_Certification_Tag version='7.0'
-                    @name
-                    @start_date
-                    @end_date
+                    ~h1
+                        @name
+                    ~h4
+                        @start_date .oe_inline
+                        through
+                        @end_date .oe_inline
+                    ~newline
                     @employee_ids
+                        ~tree
+                            @name
+                            @department_id
+                            @job_id
 
         ~record model='ir.ui.view' #hr_training_tag_tree
             @name: hr.training.tag.tree
@@ -169,5 +194,6 @@
                             ~tree
                                 @class_name
                                 @class_cert
-                                @start_date
-                                @end_date
+                                @disposition
+                                @class_date
+                                @expiration_date

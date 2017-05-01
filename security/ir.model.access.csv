@@ -1,5 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_hr_training_description_manager,access_hr_training_description,model_hr_training_description,base.group_hr_manager,1,1,1,1
 access_hr_training_class_manager,access_hr_training_class,model_hr_training_class,base.group_hr_manager,1,1,1,1
-access_hr_training_tag_manager,access_hr_training_tag,model_hr_training_tag,base.group_hr_manager,1,1,1,1
-access_hr_training_history_manager,access_hr_training_history,model_hr_training_history,base.group_hr_manager,1,1,1,1
+access_hr_training_tag_manager,access_hr_training_tag,model_hr_training_tag,base.group_hr_manager,1,0,1,0
+access_hr_training_history_manager,access_hr_training_history,model_hr_training_history,base.group_hr_manager,1,0,1,0
