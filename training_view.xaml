@@ -70,8 +70,6 @@
             @res_model: hr.training.class
             @view_type: form
             @view_mode: tree,form
-            // @search_view_id:
-            // @context:
 
         ~menuitem name='Classes' #menu_hr_training_class parent='menu_hr_training' action='hr_training_class_action'
 
@@ -180,7 +178,7 @@
                     ~label .oe_edit_only $Certifications for='hr_training_certs'
                     @hr_training_certs readonly='1' widget='many2many_tags'
                 ~xpath expr="//form/sheet/notebook" position='inside'
-                    ~page $Certifications
+                    ~page $Certifications groups='base.group_hr_manager'
                         ~label for='hr_training_classes'
                         @hr_training_classes readonly='1'
                             ~tree 

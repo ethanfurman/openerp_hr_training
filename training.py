@@ -233,3 +233,9 @@ class hr_employee(osv.Model):
             string='Scheduled Training',
             ),
         }
+
+    fields.apply_groups(
+            _columns,
+            {
+                'base.group_hr_manager': ['hr_training_.*'],
+                })
