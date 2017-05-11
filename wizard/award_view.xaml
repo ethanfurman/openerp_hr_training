@@ -13,7 +13,7 @@
                         ~page $Attendees
                             @employee_ids nolabel='1'
                                 ~tree $Candidates create='0' delete='0' editable='top' colors="green:disposition=='pass';red:disposition=='fail'"
-                                    @disposition
+                                    @disposition on_change="change_disposition(disposition, context)"
                                     @name readonly='1'
                                     @department readonly='1'
                                     @job readonly='1'

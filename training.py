@@ -2,7 +2,6 @@ import logging
 from osv import osv, fields
 from fnx import construct_datetime
 from openerp.exceptions import ERPError
-# from dbf import Date
 
 _logger = logging.getLogger(__name__)
 
@@ -110,6 +109,10 @@ class hr_training_class(osv.Model):
             'employee2training_class', 'class_id', 'employee_id',
             string='Attendees', oldname='attendees',
             ),
+        'final_attendee_ids': fields.one2many(
+            'hr.training.history', 'class_id',
+            string='Final Attendees',
+            ),
         'location': fields.text('Class location'),
         'capacity': fields.integer('How many can attend'),
         'remaining': fields.function(
@@ -162,6 +165,24 @@ class hr_training_class(osv.Model):
         return res
 
 
+class hr_training_trainee(osv.Model):
+    _name = 'hr.training.trainee'
+
+    _columns = {
+        'employee_id': fields.many2one('hr.employee', 'Employee', ondelete='cascade'),
+        'name': fields.related('employee_id', 'name', string='Name', type='char', size='64'),
+        'certification_id': fields.many2one('hr.training.tag', 'Certification', ondelete='restrict'),
+        'class_id': fields.many2one('hr.training.class', 'Training'),
+        'disposition': fields.selection(
+            (('pass', 'Passed'),
+             ('fail', 'Failed'),
+             ),
+            string='Status',
+            sort_order='definition',
+            ),
+        }
+
+
 class hr_training_tag(osv.Model):
     _name = 'hr.training.tag'
     _desc = 'certification tag'
@@ -180,34 +201,43 @@ class hr_training_tag(osv.Model):
         }
 
 
+
+
 class hr_training_history(osv.Model):
     _name = 'hr.training.history'
     _desc = 'class taken by employee'
 
     _columns = {
-        'employee_ids': fields.many2many(
-            'hr.employee',
-            'employee2training_history', 'history_id', 'employee_id',
-            string='Employees',
+        'employee_id': fields.many2one('hr.employee', 'Employee', ondelete='cascade'),
+        'employee_name': fields.related('employee_id', 'name', string='Name', type='char', size=64),
+        'employee_phone': fields.related('employee_id', 'work_phone', string='Phone', type='char', size=64),
+        'employee_email': fields.related('employee_id', 'work_email', string='Email', type='char', size=128),
+        'certification_id': fields.many2one('hr.training.tag', 'Certification', ondelete='restrict'),
+        'class_cert': fields.related('certification_id', 'name', type='char', size=64),
+        'expiration_date': fields.related(
+            'certification_id', 'end_date',
+            string='Expiration Date',
+            type='date',
             ),
-        'instructor_ids': fields.many2many(
-            'res.partner',
-            'instructor2training_history', 'training_id', 'partner_id',
-            string='Instructor(s)',
-            on_delete='restrict',
+        'class_id': fields.many2one('hr.training.class', 'Training'),
+        'class_name': fields.related('class_id', 'class_name', string='Class Name', type='char', size=64),
+        'class_desc': fields.related('class_id', 'class_desc', string='Class Description', type='char', size=64),
+        'class_date': fields.related('class_id', 'start_datetime', string='Class Date & Time', type='datetime'),
+        'instructor_ids': fields.related(
+            'class_id', 'instructor_ids',
+            type='many2many',
+            obj='res.partner',
+            rel='instructor2training', id1='training_id', id2='partner_id',
+            string='Instructors',
             ),
         'disposition': fields.selection(
             (('pass', 'Passed'),
              ('fail', 'Failed'),
+             ('dna', 'D.N.A.'),
              ),
             string='Status',
             sort_order='definition',
             ),
-        'class_name': fields.char('Class', size=64),
-        'class_desc': fields.text('Description'),
-        'class_cert': fields.char('Certificate', size=64),
-        'class_date': fields.date('Training Date'),
-        'expiration_date': fields.date('Expiration Date'),
         }
 
 
@@ -222,9 +252,8 @@ class hr_employee(osv.Model):
             string='Certifications',
             ondelete='restrict',
             ),
-        'hr_training_history': fields.many2many(
-            'hr.training.history',
-            'employee2training_history', 'employee_id', 'history_id',
+        'hr_training_history': fields.one2many(
+            'hr.training.history', 'employee_id',
             string='Training History',
             ),
         'hr_training_classes': fields.many2many(

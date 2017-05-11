@@ -1,8 +1,6 @@
 import logging
 from osv import osv, fields
-from openerp.exceptions import ERPError
 from fnx import date
-ERPError
 
 _logger = logging.getLogger(__name__)
 
@@ -56,16 +54,10 @@ class hr_training_award(osv.TransientModel):
         cert_start_date = date(class_rec.start_date)
         if class_rec.duration_period == 'days':
             cert_start_date = cert_start_date.replace(delta_day=int(class_rec.duration_count)+1)
-        cert_end_date = cert_start_date.replace(delta_month=class_rec.class_effective_period)
+        cert_end_date = cert_start_date.replace(delta_month=class_rec.class_effective_period, delta_day=-1)
         passed_employees = [(6, 0, [e.employee_id.id for e in this_rec.employee_ids if e.disposition == 'pass'])]
-        failed_employees = [(6, 0, [e.employee_id.id for e in this_rec.employee_ids if e.disposition == 'fail'])]
         instructor_ids = [(6, 0, [i.id for i in (class_rec.instructor_ids or [])])]
-        history_rec = {
-                'class_name': class_rec.class_name,
-                'class_desc': class_rec.class_desc,
-                'class_date': class_rec.start_date,
-                'expiration_date': cert_end_date,
-                }
+        history_rec = {'instructor_ids': instructor_ids, 'class_id': class_id}
         if passed_employees:
             # create certificate
             cert_rec = {
@@ -76,13 +68,7 @@ class hr_training_award(osv.TransientModel):
                 'employee_ids': passed_employees,
                 'description_id': class_rec.description_id.id,
                 }
-            hr_training_tag.create(cr, uid, cert_rec, context=context)
-            # add to history
-            history_rec['disposition'] = 'pass'
-            history_rec['class_cert'] = cert_rec['name']
-            history_rec['employee_ids'] = passed_employees
-            history_rec['instructor_ids'] = instructor_ids
-            hr_training_history.create(cr, uid, history_rec, context=context)
+            tag_id = hr_training_tag.create(cr, uid, cert_rec, context=context)
             # add trained employees to class description
             tag_description = class_rec.description_id
             hr_training_description.write(
@@ -90,12 +76,19 @@ class hr_training_award(osv.TransientModel):
                     {'employee_ids': passed_employees},
                     context=context,
                     )
-        if failed_employees:
-            history_rec['disposition'] = 'fail'
-            history_rec['class_cert'] = False
-            history_rec['expiration_date'] = False
-            history_rec['employee_ids'] = failed_employees
-            history_rec['instructor_ids'] = instructor_ids
+        # add to history
+        for emp in this_rec.employee_ids:
+            if emp.disposition == 'pass':
+                history_rec['certification_id'] = tag_id
+                history_rec['disposition'] = 'pass'
+            elif emp.disposition == 'fail':
+                history_rec['certification_id'] = False
+                history_rec['disposition'] = 'fail'
+            else:
+                # no grade
+                history_rec['certification_id'] = False
+                history_rec['disposition'] = 'dna'
+            history_rec['employee_id'] = emp.employee_id.id
             hr_training_history.create(cr, uid, history_rec, context=context)
         hr_training_class.write(cr, uid, [class_id], {'active': False}, context=context)
         return True
@@ -113,8 +106,19 @@ class hr_training_award_status(osv.TransientModel):
         'disposition': fields.selection(
             (('pass', 'Pass'),
              ('fail', 'Fail'),
+             ('dna', 'D.N.A.'),
              ),
             string='Grant Certificate',
             sort_order='definition',
             ),
         }
+
+    def change_disposition(self, cr, uid, ids, disp, context=None):
+        print '---\ndisp is %r\n---' % (disp, )
+        if not disp:
+            return {
+                    'warning': {'title': 'Bad Value', 'message': 'An option must be chosen (not blank)'},
+                    'value': {'disposition': 'dna'},
+                    }
+        else:
+            return {}

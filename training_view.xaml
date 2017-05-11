@@ -11,6 +11,7 @@
             @model: hr.training.class
             @arch type='xml'
                 ~form $Training_Class version='7.0'
+                    @active invisible='1'
                     ~div .oe_preliminary
                         ~label for='description_id' .oe_edit_only
                         ~h1
@@ -22,7 +23,7 @@
                             @class_effective_period .oe_inline readonly='1'
                             months
                     ~div @button_box .oe_right .oe_button_box
-                        ~button $Award_Certificates .oe_edit_hide name='%(hr_training.action_hr_training_award_certification)d' type='action' attrs="{'invisible': [('attendee_ids','=',None)]}"
+                        ~button $Award_Certificates .oe_edit_hide name='%(hr_training.action_hr_training_award_certification)d' type='action' attrs="{'invisible': ['|',('attendee_ids','=',None),('active','=',False)]}"
                     ~div
                         ~group $Description
                                 @class_name readonly='1'
@@ -47,11 +48,17 @@
                                     @parent_id
                                     @phone
                                     @email
-                            @attendee_ids on_change='change_remaining(capacity, attendee_ids, context)' options="{'create': False, 'create_edit': False}"
+                            @attendee_ids on_change='change_remaining(capacity, attendee_ids, context)' options="{'create': False, 'create_edit': False}" attrs="{'invisible': [('active','=',False)]}"
                                 ~tree
                                     @name
                                     @work_phone $Phone
                                     @work_email $Email
+                            @final_attendee_ids readonly='1' attrs="{'invisible': [('active','=',True)]}"
+                                ~tree
+                                    @employee_name
+                                    @employee_phone
+                                    @employee_email
+                                    @disposition
 
         ~record model='ir.ui.view' #hr_training_class_tree
             @name: hr.training.class.tree
@@ -71,7 +78,16 @@
             @view_type: form
             @view_mode: tree,form
 
-        ~menuitem name='Classes' #menu_hr_training_class parent='menu_hr_training' action='hr_training_class_action'
+        ~menuitem name='Current' #menu_hr_training_class parent='menu_hr_training' action='hr_training_class_action'
+
+        ~record model='ir.actions.act_window' #hr_training_class_previous_action
+            @name: Trainings
+            @res_model: hr.training.class
+            @view_type: form
+            @view_mode: tree,form
+            @domain: [('active','=',False)]
+
+        ~menuitem name='Previous' #menu_hr_training_class_previous parent='menu_hr_training' action='hr_training_class_previous_action'
 
 
         // config
