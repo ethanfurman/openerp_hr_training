@@ -266,5 +266,5 @@ class hr_employee(osv.Model):
     fields.apply_groups(
             _columns,
             {
-                'base.group_hr_supervisor': ['hr_training_.*'],
+                'base.group_hr_user': ['hr_training_.*'],
                 })

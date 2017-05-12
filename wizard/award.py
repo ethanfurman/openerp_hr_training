@@ -1,6 +1,7 @@
 import logging
 from osv import osv, fields
 from fnx import date
+from openerp import SUPERUSER_ID
 
 _logger = logging.getLogger(__name__)
 
@@ -68,11 +69,11 @@ class hr_training_award(osv.TransientModel):
                 'employee_ids': passed_employees,
                 'description_id': class_rec.description_id.id,
                 }
-            tag_id = hr_training_tag.create(cr, uid, cert_rec, context=context)
+            tag_id = hr_training_tag.create(cr, SUPERUSER_ID, cert_rec, context=context)
             # add trained employees to class description
             tag_description = class_rec.description_id
             hr_training_description.write(
-                    cr, uid, tag_description.id,
+                    cr, SUPERUSER_ID, tag_description.id,
                     {'employee_ids': passed_employees},
                     context=context,
                     )
@@ -89,8 +90,8 @@ class hr_training_award(osv.TransientModel):
                 history_rec['certification_id'] = False
                 history_rec['disposition'] = 'dna'
             history_rec['employee_id'] = emp.employee_id.id
-            hr_training_history.create(cr, uid, history_rec, context=context)
-        hr_training_class.write(cr, uid, [class_id], {'active': False}, context=context)
+            hr_training_history.create(cr, SUPERUSER_ID, history_rec, context=context)
+        hr_training_class.write(cr, SUPERUSER_ID, [class_id], {'active': False}, context=context)
         return True
 
 

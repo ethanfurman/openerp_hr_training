@@ -2,7 +2,7 @@
 ~openerp
     ~data
 
-        ~menuitem @Training #menu_hr_training parent='hr.menu_hr_root' groups='base.group_hr_manager'
+        ~menuitem @Training #menu_hr_training parent='hr.menu_hr_root' groups='base.group_hr_user'
 
         // main forms
 
@@ -191,10 +191,10 @@
             @priority eval='16'
             @arch type='xml'
                 @category_ids position='after'
-                    ~label .oe_edit_only $Certifications for='hr_training_certs'
-                    @hr_training_certs readonly='1' widget='many2many_tags'
+                    ~label .oe_edit_only $Certifications for='hr_training_certs' groups='base.group_hr_user'
+                    @hr_training_certs readonly='1' widget='many2many_tags' groups='base.group_hr_user'
                 ~xpath expr="//form/sheet/notebook" position='inside'
-                    ~page $Certifications groups='base.group_hr_manager'
+                    ~page $Certifications groups='base.group_hr_user'
                         ~label for='hr_training_classes'
                         @hr_training_classes readonly='1'
                             ~tree 
