@@ -23,7 +23,7 @@
                             @class_effective_period .oe_inline readonly='1'
                             months
                     ~div @button_box .oe_right .oe_button_box
-                        ~button $Award_Certificates .oe_edit_hide name='%(hr_training.action_hr_training_award_certification)d' type='action' attrs="{'invisible': ['|',('attendee_ids','=',None),('active','=',False)]}"
+                        ~button $Award_Certificates .oe_edit_hide name='%(hr_training.action_hr_training_award_certification)d' type='action' attrs="{'invisible': ['|','|',('attendee_ids','=',None),('active','=',False),('start_datetime','=',False)]}"
                     ~div
                         ~group $Description
                                 @class_name readonly='1'
