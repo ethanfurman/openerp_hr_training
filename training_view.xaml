@@ -214,3 +214,17 @@
                                 @disposition
                                 @class_date
                                 @expiration_date
+
+    ~data noupdate='1'
+
+        ~record model='ir.cron' #hr_training_update
+            @name: HR Training Tags Update
+            @interval_number: 1
+            @interval_type: days
+            @numbercall: -1
+            @doall eval='False'
+            @model eval="'hr.training.tag'"
+            @function eval="'expire_tags'"
+            @args eval="'()'"
+            @nextcall eval="'2017-10-25 01:23:45'"
+            @priority: 100

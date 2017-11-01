@@ -200,7 +200,15 @@ class hr_training_tag(osv.Model):
         'end_date': fields.date('Expiration Date'),
         }
 
-
+    def expire_tags(self, cr, uid, arg=None, context=None, ids=None):
+        _logger.debug( 'updating tags...')
+        today = fields.date.today(self, cr, localtime=True)
+        _logger.debug( 'today is %r', today)
+        expired_ids = self.search(cr, uid, [('end_date','<',today)], context=context)
+        _logger.debug( 'expired ids: %r', expired_ids)
+        self.write(cr, uid, expired_ids, {'active': False}, context=context)
+        _logger.debug( 'done with tags')
+        return True
 
 
 class hr_training_history(osv.Model):
