@@ -2,6 +2,7 @@ import logging
 from osv import osv, fields
 from fnx import construct_datetime
 from openerp.exceptions import ERPError
+from openerp.tools.misc import OrderBy
 
 _logger = logging.getLogger(__name__)
 
@@ -43,6 +44,7 @@ class hr_training_class(osv.Model):
     _name = 'hr.training.class'
     _desc = 'training class'
     _rec_name = 'class_name'
+    _order = OrderBy("""coalesce(start_date, date '2001-01-01') desc""")
 
     def _calc_datetime(self, cr, uid, ids, field_name, arg, context=None):
         if isinstance(ids, (int, long)):
@@ -72,19 +74,19 @@ class hr_training_class(osv.Model):
         'description_id': fields.many2one('hr.training.description', string='Class', ondelete='restrict'),
         'class_name': fields.related(
             'description_id', 'name',
-            string='Name', type='char', size=64,
+            string='Name', type='char', size=64, store=True,
             ),
         'class_desc': fields.related(
             'description_id', 'desc',
-            string='Description', type='text',
+            string='Description', type='text', store=True,
             ),
         'class_cert': fields.related(
             'description_id', 'tag',
-            string='Certification', type='char', size=64,
+            string='Certification', type='char', size=64, store=True,
             ),
         'class_effective_period': fields.related(
             'description_id', 'effective_period',
-            string='Effective Period', type='integer',
+            string='Effective Period', type='integer', store=True,
             ),
         'duration_count': fields.integer('Length'),
         'duration_period': fields.selection(ClassLength, string='Class duration'),
