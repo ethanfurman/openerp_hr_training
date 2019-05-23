@@ -32,6 +32,7 @@
                                 ~div colspan='1'
                                     @duration_count .oe_inline
                                     @duration_period .oe_inline
+                                @department style="width: 3in"
                         ~group $Details cols='6'
                             ~group cols='4'
                                 @location
@@ -67,8 +68,8 @@
                 ~tree $Training_Class
                     @class_name
                     @class_cert
+                    @department
                     @start_datetime
-                    @location
                     @capacity
                     @remaining
 

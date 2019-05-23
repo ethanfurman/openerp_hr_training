@@ -115,6 +115,7 @@ class hr_training_class(osv.Model):
             'hr.training.history', 'class_id',
             string='Final Attendees',
             ),
+        'department': fields.many2one('hr.department', string='Department'),
         'location': fields.text('Class location'),
         'capacity': fields.integer('How many can attend'),
         'remaining': fields.function(
