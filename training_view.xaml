@@ -69,7 +69,7 @@
                     @class_name
                     @class_cert
                     @department
-                    @start_datetime
+                    @start_date
                     @capacity
                     @remaining
 
