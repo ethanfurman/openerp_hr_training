@@ -1,8 +1,9 @@
 import logging
-from osv import osv, fields
+from dbf import Date
 from fnx import construct_datetime
 from openerp.exceptions import ERPError
-from openerp.tools.misc import OrderBy
+from openerp.tools.misc import OrderBy, DEFAULT_SERVER_DATE_FORMAT
+from osv import osv, fields
 
 _logger = logging.getLogger(__name__)
 
@@ -190,6 +191,22 @@ class hr_training_tag(osv.Model):
     _name = 'hr.training.tag'
     _desc = 'certification tag'
 
+    def _calc_days(self, cr, uid, ids, field_name, arg, context):
+        "number of days left before certification expires"
+        res = {}
+        if ids:
+            today = Date.today()
+            records = self.read(cr, uid, ids, ['id', 'end_date', 'active'], context)
+            for rec in records:
+                if not rec['active']:
+                    continue
+                id = rec['id']
+                res[id] = {}
+                expiration_date = Date.strptime(rec['end_date'], DEFAULT_SERVER_DATE_FORMAT)
+                days_remaining = expiration_date - today
+                res[id]['days_left'] = days_remaining.days
+        return res
+
     _columns = {
         'active': fields.boolean('Effective', help="Tag becomes inactive once expired"),
         'description_id': fields.many2one('hr.training.description', 'Certificate Details'),
@@ -201,6 +218,15 @@ class hr_training_tag(osv.Model):
             ),
         'start_date': fields.date('Effective Date'),
         'end_date': fields.date('Expiration Date'),
+        'days_left': fields.function(
+            _calc_days,
+            method=True,
+            type="integer",
+            string='Effective days remaining',
+            store={
+                'hr.training.tag': (lambda table, cr, uid, ids, ctx: ids, ['active', 'end_date'], 10),
+                },
+            ),
         }
 
     def expire_tags(self, cr, uid, arg=None, context=None, ids=None):
