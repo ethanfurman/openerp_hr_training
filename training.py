@@ -204,7 +204,7 @@ class hr_training_tag(osv.Model):
                 res[id] = {}
                 expiration_date = Date.strptime(rec['end_date'], DEFAULT_SERVER_DATE_FORMAT)
                 days_remaining = expiration_date - today
-                res[id]['days_left'] = days_remaining.days
+                res[id] = days_remaining.days
         return res
 
     _columns = {
@@ -230,13 +230,9 @@ class hr_training_tag(osv.Model):
         }
 
     def expire_tags(self, cr, uid, arg=None, context=None, ids=None):
-        _logger.debug( 'updating tags...')
         today = fields.date.today(self, cr, localtime=True)
-        _logger.debug( 'today is %r', today)
         expired_ids = self.search(cr, uid, [('end_date','<',today)], context=context)
-        _logger.debug( 'expired ids: %r', expired_ids)
         self.write(cr, uid, expired_ids, {'active': False}, context=context)
-        _logger.debug( 'done with tags')
         return True
 
 
