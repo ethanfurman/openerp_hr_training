@@ -1,6 +1,7 @@
 import logging
 from dbf import Date
 from fnx import construct_datetime
+from openerp import SUPERUSER_ID as SU
 from openerp.exceptions import ERPError
 from openerp.tools.misc import OrderBy, DEFAULT_SERVER_DATE_FORMAT
 from osv import osv, fields
@@ -240,7 +241,34 @@ class hr_training_history(osv.Model):
     _name = 'hr.training.history'
     _desc = 'class taken by employee'
 
+    def _get_name(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for rec in self.browse(cr, SU, ids, context=context):
+            res[rec.id] = '%s: %s' % (rec.employee_name, rec.class_name)
+        return res
+
+    def _get_class_ids(key_table, cr, uid, ids, context=None):
+        # ids are the ids changed in the foreign table
+        # return the ids in this table that link to those foreign records
+        self = key_table.pool.get('hr.training_history')
+        return self.search(cr, SU, [('class_id','in',ids)], context=None)
+
+    def _get_employee_ids(key_table, cr, uid, ids, context=None):
+        # ids are the ids changed in the foreign table
+        # return the ids in this table that link to those foreign records
+        self = key_table.pool.get('hr.training_history')
+        return self.search(cr, SU, [('employee_id','in',ids)], context=None)
+
     _columns = {
+        'name': fields.function(
+            _get_name,
+            type='char',
+            string='Name',
+            store={
+                'hr.employee': (_get_employee_ids, ['name'], 10),
+                'hr.insurance.company': (_get_class_ids, ['class_name'], 10),
+                }
+            ),
         'employee_id': fields.many2one('hr.employee', 'Employee', ondelete='cascade'),
         'employee_name': fields.related('employee_id', 'name', string='Name', type='char', size=64),
         'employee_phone': fields.related('employee_id', 'work_phone', string='Phone', type='char', size=64),
