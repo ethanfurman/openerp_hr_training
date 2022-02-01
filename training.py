@@ -250,13 +250,13 @@ class hr_training_history(osv.Model):
     def _get_class_ids(key_table, cr, uid, ids, context=None):
         # ids are the ids changed in the foreign table
         # return the ids in this table that link to those foreign records
-        self = key_table.pool.get('hr.training_history')
+        self = key_table.pool.get('hr.training.history')
         return self.search(cr, SU, [('class_id','in',ids)], context=None)
 
     def _get_employee_ids(key_table, cr, uid, ids, context=None):
         # ids are the ids changed in the foreign table
         # return the ids in this table that link to those foreign records
-        self = key_table.pool.get('hr.training_history')
+        self = key_table.pool.get('hr.training.history')
         return self.search(cr, SU, [('employee_id','in',ids)], context=None)
 
     _columns = {
