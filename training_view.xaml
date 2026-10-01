@@ -26,13 +26,16 @@
                         ~button $Award_Certificates .oe_edit_hide name='%(hr_training.action_hr_training_award_certification)d' type='action' attrs="{'invisible': ['|','|',('attendee_ids','=',None),('active','=',False),('start_datetime','=',False)]}"
                     ~div
                         ~group $Description
-                                @class_name readonly='1'
-                                @class_desc readonly='1'
-                                ~label for='duration_count' $Class_Length
-                                ~div colspan='1'
-                                    @duration_count .oe_inline
-                                    @duration_period .oe_inline
-                                @department style="width: 3in"
+                            @class_name readonly='1'
+                            @class_desc readonly='1'
+                            ~label for='duration_count' $Class_Length
+                            ~div colspan='1'
+                                @duration_count .oe_inline
+                                @duration_period .oe_inline
+                            @department style="width: 3in"
+                        ~group $Documents
+                            ~div .fnxfs_files
+                                @documents nolabel='1'
                         ~group $Details cols='6'
                             ~group cols='4'
                                 @location
@@ -74,19 +77,29 @@
                     @remaining
 
         ~record model='ir.actions.act_window' #hr_training_class_action
-            @name: Trainings
+            @name: Available Classes
             @res_model: hr.training.class
             @view_type: form
             @view_mode: tree,form
+            @domain: [('state','=','available')]
 
-        ~menuitem name='Current' #menu_hr_training_class parent='menu_hr_training' action='hr_training_class_action'
+        ~menuitem name='Available' #menu_hr_training_class parent='menu_hr_training' action='hr_training_class_action'
+
+        ~record model='ir.actions.act_window' #hr_training_class_pending_action
+            @name: Needs Awarded
+            @res_model: hr.training.class
+            @view_type: form
+            @view_mode: tree,form
+            @domain: [('state','=','pending')]
+
+        ~menuitem name='Pending' #menu_hr_training_class_pending parent='menu_hr_training' action='hr_training_class_pending_action'
 
         ~record model='ir.actions.act_window' #hr_training_class_previous_action
-            @name: Trainings
+            @name: Previous Classes
             @res_model: hr.training.class
             @view_type: form
             @view_mode: tree,form
-            @domain: [('active','=',False)]
+            @domain: ['|',('state','=','complete'),('active','=',False)]
 
         ~menuitem name='Previous' #menu_hr_training_class_previous parent='menu_hr_training' action='hr_training_class_previous_action'
 
@@ -198,28 +211,29 @@
             @arch type='xml'
                 ~xpath expr="//form/sheet/notebook" position='inside'
                     ~page $Certifications groups='base.group_hr_user'
-                        ~label for='hr_training_classes'
-                        @hr_training_classes readonly='1'
-                            ~tree 
-                                @class_name
-                                @class_cert
-                                @location
-                                @start_datetime
-                                @remaining
-                        ~label for='hr_training_certs' $Active_Certifications
-                        @hr_training_certs readonly='1'
-                            ~tree
-                                @name
-                                @start_date
-                                @end_date
-                        ~label for='hr_training_history'
-                        @hr_training_history readonly='1'
-                            ~tree
-                                @class_name
-                                @class_cert
-                                @disposition
-                                @class_date
-                                @expiration_date
+                        ~notebook
+                            ~page $Active
+                                @hr_training_certs readonly='1'
+                                    ~tree
+                                        @name
+                                        @start_date
+                                        @end_date
+                            ~page $Pending
+                                @hr_training_classes readonly='1'
+                                    ~tree 
+                                        @class_name
+                                        @class_cert
+                                        @location
+                                        @start_datetime
+                                        @remaining
+                            ~page $Expired
+                                @hr_training_history readonly='1'
+                                    ~tree
+                                        @class_name
+                                        @class_cert
+                                        @disposition
+                                        @class_date
+                                        @expiration_date
 
     ~data noupdate='1'
 

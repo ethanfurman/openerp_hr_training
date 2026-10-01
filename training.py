@@ -1,6 +1,7 @@
 import logging
 from dbf import Date
 from fnx import construct_datetime
+from fnx_fs.fields import files
 from openerp import SUPERUSER_ID as SU
 from openerp.exceptions import ERPError
 from openerp.tools.misc import OrderBy, DEFAULT_SERVER_DATE_FORMAT
@@ -14,6 +15,11 @@ class ClassLength(fields.SelectionEnum):
     hours = 'Hours'
     days = 'Days'
 
+class ClassState(fields.SelectionEnum):
+    _order_ = 'available pending complete'
+    available = 'Available'
+    pending = 'Pending Certification'
+    complete = 'Complete'
 
 class hr_training_description(osv.Model):
     _name = 'hr.training.description'
@@ -47,6 +53,10 @@ class hr_training_class(osv.Model):
     _desc = 'training class'
     _rec_name = 'class_name'
     _order = OrderBy("""coalesce(start_date, date '2001-01-01') desc""")
+    _inherit = ['fnx_fs.fs']
+    _fnxfs_path = 'human_resources/documents'
+    _fnxfs_path_fields = ['id']
+
 
     def _calc_datetime(self, cr, uid, ids, field_name, arg, context=None):
         if isinstance(ids, (int, long)):
@@ -73,6 +83,7 @@ class hr_training_class(osv.Model):
 
     _columns = {
         'active': fields.boolean('Pending', help='Class becomes inactive once completed'),
+        'state': fields.selection(ClassState, 'Status'),
         'description_id': fields.many2one('hr.training.description', string='Class', ondelete='restrict'),
         'class_name': fields.related(
             'description_id', 'name',
@@ -129,6 +140,7 @@ class hr_training_class(osv.Model):
                     (lambda t, c, u, ids, ctx: ids, ['capacity', 'attendee_ids'], 10),
                 },
             ),
+        'documents': files('classes', string='Documents'),
         }
 
     _defaults = {
@@ -168,6 +180,19 @@ class hr_training_class(osv.Model):
             }
         res['value'] = values
         return res
+
+    def fnxfs_folder_name(self, records):
+        "return name of folder to hold related files"
+        res = {}
+        for record in records:
+            res[record['id']] = "%06d" % record['id']
+        return res
+
+    def update_class_state(self, cr, uid, arg=None, context=None, ids=None):
+        today = fields.date.today(self, cr, localtime=True)
+        expired_ids = self.search(cr, uid, [('state','=','available'),('start_date','<',today)], context=context)
+        self.write(cr, uid, expired_ids, {'state': 'pending'}, context=context)
+        return True
 
 
 class hr_training_trainee(osv.Model):
