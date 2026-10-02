@@ -21,9 +21,13 @@ class hr_training_award(osv.TransientModel):
         if 'class_id' in fields_list:
             result['class_id'] = source_id
         if 'employee_ids' in fields_list:
-            employees = []
+            hr = self.pool.get('hr.employee')
             hr_training_class = self.pool.get('hr.training.class')
-            records = hr_training_class.browse(cr, uid, source_id, context=context).attendee_ids
+            employees = []
+            class_rec = hr_training_class.browse(cr, uid, source_id, context=context)
+            inst_partner_ids = [r.id for r in class_rec.instructor_ids]
+            inst_emp_recs = hr.browse(cr, SUPERUSER_ID, [('partner_id','in',inst_partner_ids)], context=context)
+            records = class_rec.attendee_ids + inst_emp_recs
             records.sort(key=lambda r: r.name)
             for rec in records:
                 employees.append({
