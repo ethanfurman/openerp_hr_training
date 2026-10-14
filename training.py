@@ -82,7 +82,6 @@ class hr_training_class(osv.Model):
         return res
 
     _columns = {
-        'active': fields.boolean('Pending', help='Class becomes inactive once completed'),
         'state': fields.selection(ClassState, 'Status'),
         'description_id': fields.many2one('hr.training.description', string='Class', ondelete='restrict'),
         'class_name': fields.related(
@@ -144,7 +143,7 @@ class hr_training_class(osv.Model):
         }
 
     _defaults = {
-        'active': True,
+        'state': 'available',
         }
 
     def change_remaining(self, cr, uid, ids, capacity, attendee_ids, context=None):
